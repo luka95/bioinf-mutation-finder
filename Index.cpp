@@ -62,4 +62,8 @@ unordered_map<string, set<int>> Index::getEndMinimizers(string& inputString, int
     return endMinimizersIndex;
 }
 
+string Index::getBestMatch(unordered_map<string, set<int>> &reference_index, unordered_map<string, set<int>> &sequence_index) {
+    return std::__cxx11::string();
+}
+
 

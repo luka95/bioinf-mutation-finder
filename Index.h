@@ -27,6 +27,9 @@ public:
      */
     static unordered_map<string, set<int>> buildMinimizerIndex(string& inputString, int w, int k);
 
+
+    static string getBestMatch(unordered_map<string,set<int>>& reference_index, unordered_map<string,set<int>>& sequence_index);
+
 private:
     /**
      *
