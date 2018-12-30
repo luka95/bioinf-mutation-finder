@@ -5,6 +5,11 @@
 
 using namespace std;
 
+/**
+ * Demonstration of minimizers.
+ * @return 0
+ * @author Dorian Ivanković
+ */
 int main() {
     string input = "231032101233101";
     int w = 3;
@@ -12,7 +17,7 @@ int main() {
     set<string> minimizers = Minimizer::getMinimizers(input, w, k);
     printf("Minimizers for string %s, w = %d, k = %d : \n", input.c_str(), w, k);
 
-    for(auto iter = minimizers.begin(); iter!=minimizers.end(); ++iter){
-        cout<<*iter<<endl;
+    for (const auto &minimizer : minimizers) {
+        cout<< minimizer <<endl;
     }
 }
