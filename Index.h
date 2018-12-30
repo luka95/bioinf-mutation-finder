@@ -1,6 +1,8 @@
 
-#include <set>
 #include <string>
+#include <set>
+#include <unordered_map>
+
 using namespace std;
 
 #ifndef BIOINF_MUTATION_FINDER_MINIMIZER_H
@@ -12,7 +14,7 @@ using namespace std;
  * Implemented as described in https://academic.oup.com/bioinformatics/article/20/18/3363/202143
  * @author Dorian Ivanković
  */
-class Minimizer {
+class Index {
 
 public:
     /**
@@ -21,18 +23,18 @@ public:
      * @param inputString - string to extract minimizers from
      * @param w - window size
      * @param k - kmer's size
-     * @return minimizers
+     * @return minimizer index
      */
-    static set<string> getMinimizers(string inputString, int w, int k);
+    static unordered_map<string, set<int>> buildMinimizerIndex(string& inputString, int w, int k);
 
 private:
     /**
      *
      * @param window - window to extract minimizer from
      * @param k - kmer's size
-     * @return minimizer of window
+     * @return minimizer of window and its offset in a window
      */
-    static string getMinimizer(string window, int k);
+    static tuple<string,int> getMinimizer(string& window, int k);
 
     /**
      * Extracts end minimizers from the input string.
@@ -41,7 +43,7 @@ private:
      * @param k - kmer's size
      * @return end minimizers
      */
-    static set<string> getEndMinimizers(string inputString, int w, int k);
+    static unordered_map<string, set<int>> getEndMinimizers(string& inputString, int w, int k);
 };
 
 
