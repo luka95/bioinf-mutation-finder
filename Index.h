@@ -28,7 +28,17 @@ public:
     static unordered_map<string, set<int>> buildMinimizerIndex(string& inputString, int w, int k);
 
 
-    static string getBestMatch(unordered_map<string,set<int>>& reference_index, unordered_map<string,set<int>>& sequence_index);
+    /**
+     * Returns the best match (start position, end position in reference string) of two strings whose indexes
+     * are reference_index and sequence_index.
+     * The best match is found using by solving the  Longest increasing subsequence problem
+     *
+     * @param reference_index
+     * @param sequence_index
+     * @return best match
+     */
+    static tuple<int,int> getBestMatch(unordered_map<string,set<int>>& reference_index, unordered_map<string,set<int>>& sequence_index);
+
 
 private:
     /**

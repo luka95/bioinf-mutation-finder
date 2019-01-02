@@ -1,4 +1,12 @@
+#include <vector>
+#include <functional>
 #include "Index.h"
+#include "LIS.h"
+
+typedef function<bool(pair<string, set<int>>, pair<string, set<int>>)> Comparator;
+static Comparator cmp = [](pair<string,set<int>> const &pair1, pair<string,set<int>> const &pair2){
+    return *pair1.second.begin() < *pair2.second.begin();
+};
 
 unordered_map<string, set<int>> Index::buildMinimizerIndex(string& inputString, int w, int k) {
     // length of window
@@ -62,8 +70,22 @@ unordered_map<string, set<int>> Index::getEndMinimizers(string& inputString, int
     return endMinimizersIndex;
 }
 
-string Index::getBestMatch(unordered_map<string, set<int>> &reference_index, unordered_map<string, set<int>> &sequence_index) {
-    return std::__cxx11::string();
+tuple<int,int> Index::getBestMatch(unordered_map<string, set<int>> &reference_index, unordered_map<string, set<int>> &sequence_index) {
+    vector<int> index_hits;
+
+    //sorting the sequence_index by kmer index (by appeareance in sequence)
+    set<pair<string, set<int>>, Comparator> ordered_seq_index(sequence_index.begin(), sequence_index.end(), cmp);
+
+    for (const auto &it : ordered_seq_index) {
+        string kmer = it.first;
+        set<int> positions = reference_index[kmer];
+
+        for(const auto &pos : positions){
+            index_hits.push_back(pos);
+        }
+    }
+
+    vector<int> lis = LIS::find(index_hits);
+
+    return {lis[0], lis[lis.size()-1]};
 }
-
-
