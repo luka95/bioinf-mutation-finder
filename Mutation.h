@@ -20,7 +20,9 @@ public:
     int position;
     char base;
 
+    Mutation();
     Mutation(MutationType type, int position, char base);
+    bool operator< (const Mutation &other) const;
 private:
     friend ostream& operator<<(ostream&, const Mutation& mt);
 

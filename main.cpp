@@ -6,49 +6,38 @@
 #include <fstream>
 #include <iostream>
 #include "Functions.h"
+#include "Index.h"
+#include "Align.h"
 
 using namespace std;
 
+const int w = 11;
+const int k = 11;
+
 int main() {
 
-    /*
-    vector<Mutation> mutations;
-    Mutation first (Substitution, 45, 'G');
-    Mutation second (Insertion, 2, 'T');
-    Mutation third (Deletion, 223, 'C');
-    Mutation fourth (Substitution, 200, 'A');
-    mutations.push_back(first);
-    mutations.push_back(second);
-    mutations.push_back(third);
-    mutations.push_back(fourth);
-
-    for(vector<Mutation>::iterator it = mutations.begin(); it != mutations.end(); ++it) {
-        cout << *it;
-    }
-     */
-    /*
-    const string genomePath = "./data/ecoli.fasta";
-    const string mutatedPath = "./data/ecoli_simulated_reads.fasta";
+    const string genomePath = "./data/lambda.fasta";
+    const string mutatedPath = "./data/lambda_simulated_reads.fasta";
 
     DataFetcher fetcher (genomePath, mutatedPath);
     fetcher.loadData();
 
-    cout << "Original genome:" << "\n";
-    cout << fetcher.genome << "\n";
+    unordered_map<string,set<int>> genomeMinimizers = Index::buildMinimizerIndex(fetcher.genome, w, k);
+    unordered_map<string,set<int>> readMinimizers;
+    vector<Mutation> mutations;
 
-    cout << "Mutated genome:" << "\n";
-    for (const auto &mutatedGenomeRead : fetcher.mutatedGenomeReads) {
-        cout << "Next read:" << "\n";
-        cout << mutatedGenomeRead << "\n";
+    for(string &mutatedGenomeRead : fetcher.mutatedGenomeReads) {
+        readMinimizers = Index::buildMinimizerIndex(mutatedGenomeRead, w, k);
+        tuple<int, int> mappedAreaBorders = Index::getBestMatch(genomeMinimizers, readMinimizers);
+        string mappedArea = fetcher.genome.substr(get<0>(mappedAreaBorders), get<1>(mappedAreaBorders) - get<0>(mappedAreaBorders));
+        vector<Mutation> areaMutations = BIOINFORMATIKA_ALIGN_H::align(mappedArea, mutatedGenomeRead, get<0>(mappedAreaBorders));
+        mutations.insert(mutations.end(), areaMutations.begin(), areaMutations.end());
     }
 
-    */
+    sort(mutations.begin(), mutations.end());
 
-    string seq = "abcdefghijkl";
-    vector<string> kmers = Functions::getKMers(seq, 3);
-
-    for(const auto &kmer : kmers){
-        cout << kmer << "\n";
+    for(auto &m : mutations) {
+        cout << m;
     }
 
     return 0;

@@ -1,28 +1,33 @@
-#include <array>
-#include <iostream>
-#include <algorithm>
-#include <string>
-#include <iomanip>
-#include <vector>
-
-using namespace std;
+#include "Align.h"
 
 const int D = -2;
-const int MATCH = 2;
+const int MATCH = 4;
 const int SUBSTITUTION = -1;
 
 const int NUM_NEIGHBOUR_NODES = 3;
 
 struct matrixNode {
-    int value;
+    short value;
     matrixNode *src[NUM_NEIGHBOUR_NODES];
-    string name;
+    int x;
+    int y;
 };
 
 struct depthData {
     int depth;
     vector<short int> path;
     matrixNode* firstNode;
+};
+
+struct mutation {
+    char type;
+    char base;
+};
+
+struct result {
+    int startIndex;
+    int endIndex;
+    vector<Mutation> mutations;
 };
 
 int checkIfMatches(char a, char b) {
@@ -35,7 +40,8 @@ int checkIfMatches(char a, char b) {
 matrixNode* getMatrixNode(int x, int y, int value = 0) {
     auto node = new matrixNode;
     node->value = value;
-    node->name = "(" + to_string(x) + "," + to_string(y) + ")";
+    node->x = x;
+    node->y = y;
     return node;
 }
 
@@ -74,9 +80,10 @@ depthData getLongestPath(matrixNode* node) {
     return data;
 }
 
+/*
 void printNode(matrixNode node) {
     cout << setw(10) << node.name << "=" << node.value << "[";
-    for(int i = 0; i < NUM_NEIGHBOUR_NODES; i++) {
+    for (int i = 0; i < NUM_NEIGHBOUR_NODES; i++) {
         if(node.src[i] == nullptr) {
             continue;
         }
@@ -84,12 +91,13 @@ void printNode(matrixNode node) {
     }
     cout << "]";
 }
-
+ */
+/*
 void printPath(matrixNode* startNode, depthData data){
     cout << "Longest path inversed:";
     cout << startNode->name;
     matrixNode* tmpNode = startNode;
-    for(short int p : data.path) {
+    for (short int p : data.path) {
         tmpNode = tmpNode->src[p];
         cout << "-(" << p << ")->" << tmpNode->name;
     }
@@ -100,24 +108,27 @@ void printPath(matrixNode* startNode, depthData data){
     cout << endl;
 }
 
-int main()
-{
-    // test data
-    char b[] = "GGCTCAATCA";
-    char a[] = "ACCTAAGG";
+ */
 
-    long s = strlen(a);
-    long t = strlen(b);
+vector<Mutation> align(string& mappedArea, string& mutatedGenomeRead, int regionOffset) {
+    long s = mutatedGenomeRead.length();
+    long t = mappedArea.length();
 
     // matrix initialization
     int M = 0;
     int Mi = 0;
     int Mj = 0;
 
-    matrixNode matrix[s+1][t+1];
-    matrix[0][0] = *getMatrixNode(0, 0);
+    int counter = 0;
+    //matrixNode * ary = new matrixNode[(s+1)*(t+1)];
+    auto ** matrix = new matrixNode*[s+1];
+    for(int i = 0; i < s+1; ++i){
+        matrix[i] = new matrixNode[t+1];
+        counter++;
+    }
+    matrix[0][0] = *getMatrixNode(0, 0, 0);
     for (int i = 1; i <= s; i++) {
-        matrix[i][0] = *getMatrixNode(i, 0);
+        matrix[i][0] = *getMatrixNode(i, 0, i * D);
     }
     for (int j = 1; j <= t; j++) {
         matrix[0][j] = *getMatrixNode(0, j);
@@ -130,43 +141,41 @@ int main()
             matrixNode* insertionNode = &matrix[i][j-1];
             matrixNode* deletionNode = &matrix[i-1][j];
 
-            int match = matchNode->value + checkIfMatches(a[i-1], b[j-1]);
+            int match = matchNode->value + checkIfMatches(mutatedGenomeRead.at(i-1), mappedArea.at(j-1));
             int insertion = insertionNode->value + D;
             int deletion = deletionNode->value + D;
 
-            int tmp[] = {0, match, insertion, deletion};
-            int v = *std::max_element(tmp, tmp + NUM_NEIGHBOUR_NODES + 1);
+            int tmp[] = {match, insertion, deletion};
+            int v = *std::max_element(tmp, tmp + NUM_NEIGHBOUR_NODES);
 
             matrixNode* newNode = getMatrixNode(i, j);
 
-            if(v > 0) {
-                newNode->value = v;
+            newNode->value = v;
 
-                if (match == v && matchNode->value > 0) {
-                    newNode->src[0] = matchNode;
-                }
-                if (insertion == v && insertionNode->value > 0) {
-                    newNode->src[1] = insertionNode;
-                }
-                if (deletion == v && deletionNode->value > 0) {
-                    newNode->src[2] = deletionNode;
-                }
+            if (match == v && matchNode->value > 0) {
+                newNode->src[0] = matchNode;
+            }
+            if (insertion == v && insertionNode->value > 0) {
+                newNode->src[1] = insertionNode;
+            }
+            if (deletion == v && deletionNode->value > 0) {
+                newNode->src[2] = deletionNode;
             }
 
             matrix[i][j] = *newNode;
-            printNode(*newNode);
+            //printNode(*newNode);
             if (v > M) {
                 M = v;
                 Mi = i;
                 Mj =j;
             }
         }
-        cout << endl;
+        //cout << endl;
     }
 
     matrixNode* maxNode = &matrix[Mi][Mj];
 
-    cout << "MAX = " << M << endl;
+    //cout << "MAX = " << M << endl;
 
     depthData depthData = getLongestPath(maxNode);
 
@@ -174,12 +183,35 @@ int main()
     nodesVector.push_back(maxNode);
 
     matrixNode* tmpNode = maxNode;
-    for(short int p : depthData.path) {
+    for (short int p : depthData.path) {
         tmpNode = tmpNode->src[p];
         nodesVector.push_back(tmpNode);
     }
 
-    printPath(maxNode, depthData);
+    //printPath(maxNode, depthData);
 
-    return 0;
+    vector<Mutation> mutations;
+    tmpNode = maxNode;
+    for (short int p : depthData.path) {
+        tmpNode = tmpNode->src[p];
+        if (p != 0) {
+            auto mutationItem = new Mutation();
+            if (p == 1) {
+                mutationItem->type = Deletion;
+                mutationItem->base = '-';
+                mutationItem->position = tmpNode->x + regionOffset;
+                mutations.push_back(*mutationItem);
+            } else if (p == 2) {
+                mutationItem->type = Insertion;
+                mutationItem->base = mappedArea.at(tmpNode->y);
+                mutationItem->position = tmpNode->x + regionOffset;
+                mutations.push_back(*mutationItem);
+            }
+        }
+    }
+    for(int i = 0; i < s+1; ++i)
+        delete [] matrix[i];
+    delete [] matrix;
+    return mutations;
 }
+

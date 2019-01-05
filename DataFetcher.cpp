@@ -22,6 +22,10 @@ void DataFetcher::loadData() {
         getline(genomeFile, line);
         getline(genomeFile, genome, string::traits_type::to_char_type(string::traits_type::eof()));
     }
+    else {
+        cerr << "Genome file couldnt be opened.";
+        exit(-1);
+    }
     genomeFile.close();
 
     ifstream mutatedFile (mutatedPath.c_str());
@@ -32,6 +36,10 @@ void DataFetcher::loadData() {
             getline(mutatedFile, line);
             mutatedGenomeReads.push_back(line);
         }
+    }
+    else {
+        cerr << "Mutated file couldnt be opened.";
+        exit(-1);
     }
     mutatedFile.close();
 }
