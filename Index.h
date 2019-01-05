@@ -2,6 +2,7 @@
 #include <string>
 #include <set>
 #include <unordered_map>
+#include <vector>
 
 using namespace std;
 
@@ -17,6 +18,9 @@ using namespace std;
 class Index {
 
 public:
+
+    static const int INDEX_HIT_MARGIN = 500;
+
     /**
      * The method extracts all minimizers from the input string using a window of size w
      * and k-mers of size k. The algorithm is described in https://academic.oup.com/bioinformatics/article/20/18/3363/202143
@@ -37,8 +41,7 @@ public:
      * @param sequence_index
      * @return best match
      */
-    static tuple<int,int> getBestMatch(unordered_map<string,set<int>>& reference_index, unordered_map<string,set<int>>& sequence_index, int sequence_len);
-
+    static tuple<int,int> getBestMatch(unordered_map<string,set<int>>& reference_index, unordered_map<string,set<int>>& sequence_index);
 
 private:
     /**
@@ -57,6 +60,8 @@ private:
      * @return end minimizers
      */
     static unordered_map<string, set<int>> getEndMinimizers(string& inputString, int w, int k);
+
+    static vector<int> groupByMargin(vector<int> positions);
 };
 
 

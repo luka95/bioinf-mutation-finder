@@ -1,5 +1,7 @@
 #include <vector>
 #include <functional>
+#include <algorithm>
+#include <iostream>
 #include "Index.h"
 #include "LIS.h"
 
@@ -71,8 +73,7 @@ unordered_map<string, set<int>> Index::getEndMinimizers(string &inputString, int
 }
 
 tuple<int, int>
-Index::getBestMatch(unordered_map<string, set<int>> &reference_index, unordered_map<string, set<int>> &sequence_index,
-                    int sequence_len) {
+Index::getBestMatch(unordered_map<string, set<int>> &reference_index, unordered_map<string, set<int>> &sequence_index) {
     vector<int> index_hits;
     int k = reference_index.begin()->first.length();
 
@@ -88,8 +89,38 @@ Index::getBestMatch(unordered_map<string, set<int>> &reference_index, unordered_
         }
     }
 
-    vector<int> lis = LIS::find(index_hits);
+    vector<int> group = groupByMargin(index_hits);
+    vector<int> lis = LIS::find(group);
 
-    //extend k positions after last hit
-    return {lis[0], lis[lis.size() - 1] + k};
+    //extend k - 1 positions after last hit
+    return {lis[0], lis[lis.size() - 1] + k - 1};
+}
+
+vector<int> Index::groupByMargin(vector<int> positions) {
+    vector<vector<int>> groups;
+
+    for(int pos : positions){
+        bool added = false;
+        for(int i = 0, n = groups.size();i<n;i++){
+            vector<int>& group = groups[i];
+            if(abs(group.back() - pos) < INDEX_HIT_MARGIN){
+                group.push_back(pos);
+                added = true;
+                break;
+            }
+        }
+
+        if(!added){
+            vector<int> group;
+            group.push_back(pos);
+            groups.push_back(group);
+        }
+    }
+
+    //return the largest group
+    sort(groups.begin(), groups.end(), [](const vector<int> &vector1, const vector<int> &vector2){
+        return vector1.size() > vector2.size();
+    });
+
+    return groups[0];
 }
