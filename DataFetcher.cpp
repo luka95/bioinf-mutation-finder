@@ -20,7 +20,10 @@ void DataFetcher::loadData() {
     {
         cout << "Genome file opened";
         getline(genomeFile, line);
-        getline(genomeFile, genome, string::traits_type::to_char_type(string::traits_type::eof()));
+        while(getline(genomeFile, line)) {
+            genome.append(line);
+        }
+        //getline(genomeFile, genome, string::traits_type::to_char_type(string::traits_type::eof()));
     }
     else {
         cerr << "Genome file couldnt be opened.";
