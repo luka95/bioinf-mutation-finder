@@ -37,7 +37,7 @@ public:
      * @param sequence_index
      * @return best match
      */
-    static tuple<int,int> getBestMatch(unordered_map<string,set<int>>& reference_index, unordered_map<string,set<int>>& sequence_index);
+    static tuple<int,int> getBestMatch(unordered_map<string,set<int>>& reference_index, unordered_map<string,set<int>>& sequence_index, int sequence_len);
 
 
 private:
