@@ -99,26 +99,75 @@ Index::getBestMatch(unordered_map<string, set<int>> &reference_index, unordered_
 vector<int> Index::groupByMargin(vector<int> positions) {
     vector<vector<int>> groups;
 
-    for(int pos : positions){
+    for (int pos : positions) {
         bool added = false;
-        for(int i = 0, n = groups.size();i<n;i++){
-            vector<int>& group = groups[i];
-            if(abs(group.back() - pos) < INDEX_HIT_MARGIN){
+        for (int i = 0, n = groups.size(); i < n; i++) {
+            vector<int> &group = groups[i];
+            if (abs(group.back() - pos) < INDEX_HIT_MARGIN) {
                 group.push_back(pos);
                 added = true;
                 break;
             }
         }
 
-        if(!added){
+        if (!added) {
             vector<int> group;
             group.push_back(pos);
             groups.push_back(group);
         }
     }
 
+    //merge groups
+    while (true) {
+        vector<vector<int>> merged_groups;
+        set<int> merged;
+        int n = groups.size();
+
+        for (int i = 0; i < n; i++) {
+            vector<int> group1 = groups[i];
+            if (merged.find(i) != merged.end()) continue;
+
+            for (int j = 0; j < n; j++) {
+                vector<int> group2 = groups[j];
+                if (i == j || merged.find(j) != merged.end()) continue;
+
+                if (abs(group1.back() - group2.front()) < INDEX_HIT_MARGIN) {
+                    vector<int> merged_group;
+
+                    merged_group.insert(merged_group.begin(), group1.begin(), group1.end());
+                    merged_group.insert(merged_group.end(), group2.begin(), group2.end());
+                    merged_groups.push_back(merged_group);
+
+                    merged.insert(i);
+                    merged.insert(j);
+                    break;
+                } else if (abs(group2.back() - group1.front()) < INDEX_HIT_MARGIN) {
+                    vector<int> merged_group;
+
+                    merged_group.insert(merged_group.begin(), group2.begin(), group2.end());
+                    merged_group.insert(merged_group.end(), group1.begin(), group1.end());
+                    merged_groups.push_back(merged_group);
+
+                    merged.insert(i);
+                    merged.insert(j);
+                    break;
+                }
+            }
+        }
+
+        if(merged.size() == 0) break;
+
+        //add all not merged
+        for (int i = 0; i < n; i++) {
+            if (merged.find(i) != merged.end()) continue;
+            merged_groups.push_back(groups[i]);
+        }
+        groups = merged_groups;
+    }
+
+    int a = 3;
     //return the largest group
-    sort(groups.begin(), groups.end(), [](const vector<int> &vector1, const vector<int> &vector2){
+    sort(groups.begin(), groups.end(), [](const vector<int> &vector1, const vector<int> &vector2) {
         return vector1.size() > vector2.size();
     });
 
