@@ -19,7 +19,7 @@ class Index {
 
 public:
 
-    static const int INDEX_HIT_MARGIN = 500;
+    static const int INDEX_HIT_MARGIN = 20;
 
     /**
      * The method extracts all minimizers from the input string using a window of size w

@@ -74,7 +74,7 @@ unordered_map<string, set<int>> Index::getEndMinimizers(string &inputString, int
 
 tuple<int, int>
 Index::getBestMatch(unordered_map<string, set<int>> &reference_index, unordered_map<string, set<int>> &sequence_index) {
-    vector<int> index_hits;
+    vector<tuple<int, int>> index_hits;
     int k = reference_index.begin()->first.length();
 
     //sorting the sequence_index by kmer index (by appeareance in sequence)
@@ -83,17 +83,47 @@ Index::getBestMatch(unordered_map<string, set<int>> &reference_index, unordered_
     for (const auto &it : ordered_seq_index) {
         string kmer = it.first;
         set<int> positions = reference_index[kmer];
+        set<int> sequence_positions = it.second;
 
-        for (const auto &pos : positions) {
-            index_hits.push_back(pos);
+        for (const auto &seq_pos : sequence_positions) {
+            for (const auto &pos : positions) {
+                index_hits.push_back({pos-seq_pos, pos});
+            }
+        }
+
+    }
+
+    //sort index_hits (ascending)
+    sort(index_hits.begin(), index_hits.end(), [](const tuple<int, int> &tuple1, const tuple<int, int> &tuple2) {
+        if (get<0>(tuple1) == get<0>(tuple2)) {
+            return get<1>(tuple1) < get<1>(tuple2);
+        } else {
+            return get<0>(tuple1) < get<0>(tuple2);
+        }
+    });
+
+    //clustering minimizer hits
+    int b = 0;
+    vector<vector<int>> groups;
+
+    for (int e = 0, n = index_hits.size(); e < n; e++) {
+        if (e == n - 1 || get<0>(index_hits[e + 1]) - get<0>(index_hits[e]) >= INDEX_HIT_MARGIN) {
+            vector<int> group;
+            for (int i = b; i <= e; i++) {
+                group.push_back(get<1>(index_hits[i]));
+            }
+            b = e + 1;
+            groups.push_back(LIS::find(group));
         }
     }
 
-    vector<int> group = groupByMargin(index_hits);
-    vector<int> lis = LIS::find(group);
+    //find the largest group
+    sort(groups.begin(), groups.end(), [](const vector<int> &vector1, const vector<int> &vector2) {
+        return (vector1.back() - vector1.front()) > (vector2.back() - vector2.front());
+    });
 
     //extend k - 1 positions after last hit
-    return {lis[0], lis[lis.size() - 1] + k - 1};
+    return {groups[0][0], groups[0][groups[0].size() - 1] + k - 1};
 }
 
 vector<int> Index::groupByMargin(vector<int> positions) {
@@ -155,7 +185,7 @@ vector<int> Index::groupByMargin(vector<int> positions) {
             }
         }
 
-        if(merged.size() == 0) break;
+        if (merged.size() == 0) break;
 
         //add all not merged
         for (int i = 0; i < n; i++) {
