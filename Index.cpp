@@ -93,13 +93,9 @@ Index::getBestMatch(unordered_map<string, set<int>> &reference_index, unordered_
 
     }
 
-    //sort index_hits (ascending)
+    //sort index_hits (by pos-seq_pos ascending)
     sort(index_hits.begin(), index_hits.end(), [](const tuple<int, int> &tuple1, const tuple<int, int> &tuple2) {
-        if (get<0>(tuple1) == get<0>(tuple2)) {
-            return get<1>(tuple1) < get<1>(tuple2);
-        } else {
-            return get<0>(tuple1) < get<0>(tuple2);
-        }
+        return get<0>(tuple1) < get<0>(tuple2);
     });
 
     //clustering minimizer hits
@@ -108,98 +104,35 @@ Index::getBestMatch(unordered_map<string, set<int>> &reference_index, unordered_
 
     for (int e = 0, n = index_hits.size(); e < n; e++) {
         if (e == n - 1 || get<0>(index_hits[e + 1]) - get<0>(index_hits[e]) >= INDEX_HIT_MARGIN) {
-            vector<int> group;
+            vector<tuple<int,int>> group;
             for (int i = b; i <= e; i++) {
-                group.push_back(get<1>(index_hits[i]));
+                group.push_back(index_hits[i]);
             }
             b = e + 1;
-            groups.push_back(LIS::find(group));
+
+            //sort group by seq_pos
+            sort(group.begin(), group.end(), [](const tuple<int, int> &tuple1, const tuple<int, int> &tuple2) {
+                return (get<1>(tuple1) - get<0>(tuple1)) < (get<1>(tuple2) - get<0>(tuple2));
+            });
+
+            vector<int> group_t;
+            for(int i=0,m=group.size();i<m;i++){
+                group_t.push_back(get<1>(group[i]));
+            }
+
+            groups.push_back(LIS::find(group_t));
         }
     }
 
     //find the largest group
     sort(groups.begin(), groups.end(), [](const vector<int> &vector1, const vector<int> &vector2) {
-        return (vector1.back() - vector1.front()) > (vector2.back() - vector2.front());
+        if(vector1.size() == vector2.size()){
+            return (vector1.back() - vector1.front()) > (vector2.back() - vector2.front());
+        }else{
+            return vector1.size() > vector2.size();
+        }
     });
 
     //extend k - 1 positions after last hit
     return {groups[0][0], groups[0][groups[0].size() - 1] + k - 1};
-}
-
-vector<int> Index::groupByMargin(vector<int> positions) {
-    vector<vector<int>> groups;
-
-    for (int pos : positions) {
-        bool added = false;
-        for (int i = 0, n = groups.size(); i < n; i++) {
-            vector<int> &group = groups[i];
-            if (abs(group.back() - pos) < INDEX_HIT_MARGIN) {
-                group.push_back(pos);
-                added = true;
-                break;
-            }
-        }
-
-        if (!added) {
-            vector<int> group;
-            group.push_back(pos);
-            groups.push_back(group);
-        }
-    }
-
-    //merge groups
-    while (true) {
-        vector<vector<int>> merged_groups;
-        set<int> merged;
-        int n = groups.size();
-
-        for (int i = 0; i < n; i++) {
-            vector<int> group1 = groups[i];
-            if (merged.find(i) != merged.end()) continue;
-
-            for (int j = 0; j < n; j++) {
-                vector<int> group2 = groups[j];
-                if (i == j || merged.find(j) != merged.end()) continue;
-
-                if (abs(group1.back() - group2.front()) < INDEX_HIT_MARGIN) {
-                    vector<int> merged_group;
-
-                    merged_group.insert(merged_group.begin(), group1.begin(), group1.end());
-                    merged_group.insert(merged_group.end(), group2.begin(), group2.end());
-                    merged_groups.push_back(merged_group);
-
-                    merged.insert(i);
-                    merged.insert(j);
-                    break;
-                } else if (abs(group2.back() - group1.front()) < INDEX_HIT_MARGIN) {
-                    vector<int> merged_group;
-
-                    merged_group.insert(merged_group.begin(), group2.begin(), group2.end());
-                    merged_group.insert(merged_group.end(), group1.begin(), group1.end());
-                    merged_groups.push_back(merged_group);
-
-                    merged.insert(i);
-                    merged.insert(j);
-                    break;
-                }
-            }
-        }
-
-        if (merged.size() == 0) break;
-
-        //add all not merged
-        for (int i = 0; i < n; i++) {
-            if (merged.find(i) != merged.end()) continue;
-            merged_groups.push_back(groups[i]);
-        }
-        groups = merged_groups;
-    }
-
-    int a = 3;
-    //return the largest group
-    sort(groups.begin(), groups.end(), [](const vector<int> &vector1, const vector<int> &vector2) {
-        return vector1.size() > vector2.size();
-    });
-
-    return groups[0];
 }

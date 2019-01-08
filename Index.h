@@ -19,7 +19,7 @@ class Index {
 
 public:
 
-    static const int INDEX_HIT_MARGIN = 20;
+    static const int INDEX_HIT_MARGIN = 50;
 
     /**
      * The method extracts all minimizers from the input string using a window of size w
@@ -60,8 +60,6 @@ private:
      * @return end minimizers
      */
     static unordered_map<string, set<int>> getEndMinimizers(string& inputString, int w, int k);
-
-    static vector<int> groupByMargin(vector<int> positions);
 };
 
 
