@@ -3,7 +3,7 @@ project(bioinf_mutation_finder)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(bioinf_mutation_finder   inverter_demo.cpp
+add_executable(bioinf_mutation_finder   mapping_demo.cpp
                                         Index.cpp Index.h
                                         LIS.cpp LIS.h
                                         Align.cpp Align.h

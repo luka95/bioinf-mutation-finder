@@ -72,6 +72,13 @@ unordered_map<string, set<int>> Index::getEndMinimizers(string &inputString, int
     return endMinimizersIndex;
 }
 
+/**
+ * Finds the best match between reference and sequence given their indexes
+ * @param reference_index
+ * @param sequence_index
+ * @return (int, int, int, int) reference begin, reference end, sequence begin, sequence end
+ */
+ //TODO return 4 values instead of 1
 tuple<int, int>
 Index::getBestMatch(unordered_map<string, set<int>> &reference_index, unordered_map<string, set<int>> &sequence_index) {
     vector<tuple<int, int>> index_hits;
@@ -133,6 +140,7 @@ Index::getBestMatch(unordered_map<string, set<int>> &reference_index, unordered_
         }
     });
 
+    int size = groups[0].size();
     //extend k - 1 positions after last hit
     return {groups[0][0], groups[0][groups[0].size() - 1] + k - 1};
 }
