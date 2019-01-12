@@ -20,6 +20,17 @@ class Index {
 public:
 
     static const int INDEX_HIT_MARGIN = 500;
+    static const int MINIMUM_MINIMIZER_MATCHES = 4;
+    static const int MINIMUM_MATCH_LENGTH = 40;
+
+    /**
+     * double strand minimizers
+     * @param inputString
+     * @param w
+     * @param k
+     * @return
+     */
+    static unordered_map<string, set<tuple<int, int>>> index(string &inputString, int w, int k);
 
     /**
      * The method extracts all minimizers from the input string using a window of size w
@@ -29,19 +40,17 @@ public:
      * @param k - kmer's size
      * @return minimizer index
      */
-    static unordered_map<string, set<int>> buildMinimizerIndex(string& inputString, int w, int k);
-
+    static unordered_map<string, set<int>> buildMinimizerIndex(string &inputString, int w, int k);
 
     /**
-     * Returns the best match (start position, end position in reference string) of two strings whose indexes
-     * are reference_index and sequence_index.
-     * The best match is found using by solving the  Longest increasing subsequence problem
-     *
-     * @param reference_index
-     * @param sequence_index
-     * @return best match
-     */
-    static tuple<int,int> getBestMatch(unordered_map<string,set<int>>& reference_index, unordered_map<string,set<int>>& sequence_index);
+    * Finds the best match between reference and sequence given their indexes
+    * @param reference_index
+    * @param sequence_index
+    * @return ((int, int, int, int) , int) reference begin, reference end, sequence begin, sequence end + strand_xor(same strands = 0, different strands = 1)
+    */
+    static tuple<tuple<int, int, int, int>, int>
+    getBestMatch(unordered_map<string, set<tuple<int, int>>> &reference_index,
+                 unordered_map<string, set<tuple<int, int>>> &sequence_index);
 
 private:
     /**
@@ -50,7 +59,7 @@ private:
      * @param k - kmer's size
      * @return minimizer of window and its offset in a window
      */
-    static tuple<string,int> getMinimizer(string& window, int k);
+    static tuple<string, int> getMinimizer(string &window, int k);
 
     /**
      * Extracts end minimizers from the input string.
@@ -59,7 +68,18 @@ private:
      * @param k - kmer's size
      * @return end minimizers
      */
-    static unordered_map<string, set<int>> getEndMinimizers(string& inputString, int w, int k);
+    static unordered_map<string, set<int>> getEndMinimizers(string &inputString, int w, int k);
+
+    /**
+     * Extract the double strand minimizer from the window of minimizers and returns its hash
+     * @param window - window of minimizers
+     * @param k - minimizer's length
+     * @return double strand minimizer for window
+     */
+    static int getDoubleStrandMinimizer(string &window, int k);
+
+
+    static unsigned long long hash(string &sequence);
 };
 
 

@@ -9,7 +9,4 @@ add_executable(bioinf_mutation_finder   mapping_demo.cpp
                                         Align.cpp Align.h
                                         DataFetcher.cpp DataFetcher.h
                                         Mutation.cpp Mutation.h
-                                        Inverter.cpp Inverter.h
-                                        tests/index_test.cpp
-                                        tests/LIS_test.cpp)
-add_subdirectory(tests)
+                                        Inverter.cpp Inverter.h)

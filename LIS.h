@@ -1,5 +1,5 @@
 //
-// Created by bivankovic on 1.1.2019..
+// Created by dorian on 1.1.2019..
 //
 
 #ifndef BIOINF_MUTATION_FINDER_LIS_H
@@ -10,7 +10,9 @@ using namespace std;
 
 class LIS {
 public:
+
     static vector<int> find(vector<int> positions);
+    static vector<tuple<int,int>> findBySecond(vector<tuple<int,int>> vec, int strand_xor);
 };
 
 
