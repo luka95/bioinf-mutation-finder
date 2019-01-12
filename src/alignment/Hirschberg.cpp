@@ -256,12 +256,12 @@ result getHirschbergAlignmentMutations(string x, string y, int inputOffset) {
     return *res;
 }
 
-int main() {
-
-    string x = "AGTACGCA";
-    string y = "TATGC";
-
-    result res = getHirschbergAlignmentMutations(x, y, 1000);
-
-    return 0; // TODO return res
-}
+//int main() {
+//
+//    string x = "AGTACGCA";
+//    string y = "TATGC";
+//
+//    result res = getHirschbergAlignmentMutations(x, y, 1000);
+//
+//    return 0; // TODO return res
+//}

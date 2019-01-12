@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <mapping/index/Index.h>
 #include <algorithm>
+#include <mapping/inverter/Inverter.h>
+#include "Hirschberg.cpp"
 
 using namespace std;
 
@@ -44,7 +46,11 @@ int main() {
         string mapped_read = read.substr(read_start, read_end - read_start + 1);
         string mapped_genome = data_loader.genome.substr(genome_start, genome_end - genome_start + 1);
 
+        if(strand_xor == 1){
+            mapped_read = Inverter::inverse(mapped_read);
+        }
 
+        result res  = getHirschbergAlignmentMutations(mapped_genome, mapped_read, genome_start);
     }
 
     return 0;
