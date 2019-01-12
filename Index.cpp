@@ -265,4 +265,3 @@ Index::getBestMatch(unordered_map<string, set<tuple<int,int>>> &reference_index,
     }
 }
 
-

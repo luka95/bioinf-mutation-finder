@@ -144,7 +144,7 @@ int main() {
 //    sequence = Inverter::inverse(sequence);
 
     auto reference_index = Index::index(reference, 5, 15);
-    auto sequence_index = Index::index(sequence, 5, 15);
+    auto sequence_index = Index::index(sequence,5, 15);
     tuple<tuple<int, int, int , int>, int> mapping = Index::getBestMatch(reference_index, sequence_index);
     auto positions = get<0>(mapping);
     int strand_xor = get<1>(mapping);
