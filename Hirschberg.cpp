@@ -17,6 +17,17 @@ struct zw {
     string w;
 };
 
+struct mutation {
+    char type;
+    char oldBase;
+    char newBase;
+};
+
+struct result {
+    int startIndex;
+    int endIndex;
+    map<int, mutation> mutations;
+};
 
 int ins(char y) {
     return D;
@@ -88,6 +99,59 @@ int* NWScore(string x, string y) {
     delete[] firstLine;
 
     return secondLine;
+}
+
+int getAlignmentStartIndex(string w) {
+    int start = 0;
+    for(char& c : w) {
+        if (c == '-') {
+            start++;
+        } else {
+            break;
+        }
+    }
+    return start;
+}
+
+int getAlignmentEndIndex(string w) {
+    int end = w.length() - 1;
+    for(auto c = w.rbegin(); c != w.rend(); ++c) {
+        if (*c == '-') {
+            end--;
+        } else {
+            break;
+        }
+    }
+    return end;
+}
+
+map<int, mutation> getMutations(zw alignment, int startIndex, int endIndex, int inputOffset) {
+    map<int, mutation> mutations;
+
+    // TODO paralelize
+    for(int i = startIndex; i <= endIndex; i++) {
+        char x = alignment.z.at(i);
+        char y = alignment.w.at(i);
+        if(x == y) {
+            continue;
+        } else {
+            auto mutationItem = new struct mutation;
+            mutationItem->oldBase = x;
+            mutationItem->newBase = y;
+
+            if (x == '-') {
+                mutationItem->type = 'I';
+            } else if (y == '-') {
+                mutationItem->type = 'D';
+            } else { // x != y
+                mutationItem->type = 'S';
+            }
+
+            mutations[i + inputOffset] = *mutationItem;
+        }
+    }
+
+    return mutations;
 }
 
 zw NeedlemanWunsch(string x, string y) {
