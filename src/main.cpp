@@ -17,8 +17,8 @@ using namespace std;
 const int w = 5;
 const int k = 15;
 
-const string genome_path = "../data/lambda.fasta";
-const string mutated_path = "../data/lambda_simulated_reads.fasta";
+const string genome_path = "../data/ecoli.fasta";
+const string mutated_path = "../data/ecoli_simulated_reads.fasta";
 const string results_path = "../data/results.csv";
 
 
@@ -126,7 +126,7 @@ int main() {
         }
     }
 
-    cout<< "Mapped "<<mapped<<" of "<<total<<endl;
+    //cout<< "Mapped "<<mapped<<" of "<<total<<endl;
 
     //collect mutations
     for (int i = 0, n = data_loader.genome.length(); i < n; i++) {
