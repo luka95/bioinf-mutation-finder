@@ -13,5 +13,5 @@ bool Mutation::operator<(const Mutation &other) const {
 }
 
 ostream& operator<<(ostream& strm, const Mutation& mt) {
-    return strm << (char)mt.type << " " << mt.position << " " << mt.base << "\n";
+    return strm << (char)mt.type << "," << mt.position << "," << mt.base << ",\n";
 }

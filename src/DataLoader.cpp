@@ -18,7 +18,7 @@ void DataLoader::loadData() {
 
     if(genomeFile.is_open())
     {
-        cout << "Genome file opened";
+        cout << "Genome file opened"<<endl;
         getline(genomeFile, line);
         while(getline(genomeFile, line)) {
             genome.append(line);
@@ -33,7 +33,7 @@ void DataLoader::loadData() {
     ifstream mutatedFile (mutated_path.c_str());
 
     if(mutatedFile.is_open()){
-        cout << "Mutated file opened";
+        cout << "Mutated file opened"<<endl;
         while(getline(mutatedFile, line)){
             getline(mutatedFile, line);
             mutated_genome_reads.push_back(line);
