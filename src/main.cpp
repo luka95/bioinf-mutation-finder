@@ -17,47 +17,14 @@ using namespace std;
 const int w = 5;
 const int k = 15;
 
-const string genome_path = "../data/ecoli.fasta";
-const string mutated_path = "../data/ecoli_simulated_reads.fasta";
+const string genome_path = "../data/lambda.fasta";
+const string mutated_path = "../data/lambda_simulated_reads.fasta";
 const string results_path = "../data/results.csv";
 
 
 char findMostFrequentValue(vector<char> &values);
 
 int main() {
-
-//    string s = "AGTGTA";
-//    string t = "TAGCGTT";
-//
-//    zw alignment = Hirschberg(s,t);
-//    string z = alignment.z;
-//    string w = alignment.w;
-//    int genome_pos = 0;
-//    vector<Mutation> mutations;
-//
-//    for (int i = 0, n = z.length(); i < n; i++) {
-//        char c = z[i];
-//        if (c == '-') {
-//            //insertion - mark = lower case base
-//            mutations.push_back(Mutation(MutationType::Insertion, genome_pos, w[i]));
-//        } else {
-//            // '-' in read_align is for deletion, a letter is for supstitution or match
-//            if(w[i] == '-'){
-//                //deletion
-//                mutations.push_back(Mutation(MutationType::Deletion, genome_pos,'-'));
-//            }else{
-//                if(w[i]!=c){
-//                    //supstitution
-//                    mutations.push_back(Mutation(MutationType::Substitution, genome_pos,w[i]));
-//                }
-//            }
-//            genome_pos++;
-//        }
-//    }
-//
-//    for(auto &mutation : mutations){
-//        cout << mutation;
-//    }
 
     DataLoader data_loader(genome_path, mutated_path);
     data_loader.loadData();
@@ -189,3 +156,4 @@ char findMostFrequentValue(vector<char> &values) {
 
     return mf_value;
 }
+

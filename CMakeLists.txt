@@ -9,7 +9,7 @@ include_directories(src/mapping/index)
 include_directories(src/mapping/inverter)
 include_directories(src/mapping/lis)
 
-add_executable(bioinf_mutation_finder   src/main.cpp
+add_executable(bioinf_mutation_finder   src/mapping/mapping_demo.cpp
         src/alignment/Align.cpp
         src/alignment/Align.h
         src/alignment/Hirschberg.cpp
