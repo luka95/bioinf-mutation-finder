@@ -5,6 +5,8 @@
 #include <vector>
 #include <map>
 #include <iterator>
+#include <chrono>
+#include <ctime>
 
 using namespace std;
 
@@ -85,7 +87,10 @@ int* NWScore(string x, string y) {
     for (int i = 1; i <= xlen; i++) {
         secondLine[0] = firstLine[0] + del(x.at(i - 1));
 
-        for (int j = 1; j <= ylen; j++) {
+        int j;
+
+        #pragma omp parallel for
+        for (j = 1; j <= ylen; j++) {
             int scoreSub = firstLine[j-1] + sub(x.at(i - 1), y.at(j - 1));
             int scoreDel = firstLine[j] + del(x.at(i - 1));
             int scoreIns = secondLine[j-1] + ins(y.at(j - 1));
@@ -261,7 +266,15 @@ int main() {
     string x = "AGTACGCA";
     string y = "TATGC";
 
-    result res = getHirschbergAlignmentMutations(x, y, 1000);
+    auto start = std::chrono::system_clock::now();
+
+    zw aligment = Hirschberg(x, y);
+
+    auto end = std::chrono::system_clock::now();
+
+    std::chrono::duration<double> elapsed_seconds = end-start;
+
+    std::cout << "Finished Hirschberg alignment. Elapsed time: " << elapsed_seconds.count() << "s\n";
 
     return 0; // TODO return res
 }
