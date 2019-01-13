@@ -10,7 +10,8 @@
 
 using namespace std;
 
-const int D = -2;
+const int DELETION = -2;
+const int INSERTION = -2;
 const int MATCH = 2;
 const int SUBSTITUTION = -1;
 
@@ -30,14 +31,6 @@ struct result {
     int endIndex;
     map<int, mutation> mutations;
 };
-
-int ins(char y) {
-    return D;
-}
-
-int del(char x) {
-    return D;
-}
 
 int sub(char x, char y) {
     if (x == y) {
@@ -81,19 +74,19 @@ int* NWScore(string x, string y) {
 
     firstLine[0] = 0;
     for (int j = 1; j <= ylen; j++) {
-        firstLine[j] = firstLine[j-1] + ins(y.at(j - 1));
+        firstLine[j] = firstLine[j-1] + INSERTION;
     }
 
     for (int i = 1; i <= xlen; i++) {
-        secondLine[0] = firstLine[0] + del(x.at(i - 1));
+        secondLine[0] = firstLine[0] + DELETION;
 
         int j;
 
         #pragma omp parallel for
         for (j = 1; j <= ylen; j++) {
             int scoreSub = firstLine[j-1] + sub(x.at(i - 1), y.at(j - 1));
-            int scoreDel = firstLine[j] + del(x.at(i - 1));
-            int scoreIns = secondLine[j-1] + ins(y.at(j - 1));
+            int scoreDel = firstLine[j] + DELETION;
+            int scoreIns = secondLine[j-1] + INSERTION;
             secondLine[j] = maximum(scoreSub, scoreIns, scoreDel);
         }
 
