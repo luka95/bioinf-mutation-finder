@@ -21,15 +21,15 @@ unordered_map<string, set<tuple<int, int>>> Index::index(string &inputString, in
     for(int i=0,n=inputString.length()-l+1;i<n;i++){
         string window = inputString.substr(i,l);
 
-        int minimizer_hash = getDoubleStrandMinimizer(window, k);
+        unsigned long long minimizer_hash = getDoubleStrandMinimizer(window, k);
 
         //collect minimizers
         for (int j = 0; j < w; j++) {
             string kmer = window.substr(j, k);
             string inverse_kmer = Inverter::inverse(kmer);
 
-            int kmer_hash = hash(kmer);
-            int inv_hash = hash(inverse_kmer);
+            unsigned long long kmer_hash = hash(kmer);
+            unsigned long long inv_hash = hash(inverse_kmer);
 
             if (kmer_hash<inv_hash && kmer_hash == minimizer_hash) {
                 index[kmer].insert({i+j, 0});
@@ -74,15 +74,15 @@ unsigned long long Index::hash(string& sequence){
     return x;
 }
 
-int Index::getDoubleStrandMinimizer(string &window, int k) {
-    int minimizer_hash = -1;
+unsigned long long Index::getDoubleStrandMinimizer(string &window, int k) {
+    unsigned long long minimizer_hash = -1;
 
     for (int i = 0, n = window.length() - k + 1; i < n; i++) {
         string kmer = window.substr(i, k);
         string inverse_kmer = Inverter::inverse(kmer);
 
-        int kmer_hash = hash(kmer);
-        int inv_hash = hash(inverse_kmer);
+        unsigned long long kmer_hash = hash(kmer);
+        unsigned long long inv_hash = hash(inverse_kmer);
 
         if (minimizer_hash == -1 || kmer_hash!=inv_hash) {
             minimizer_hash = min(kmer_hash, inv_hash);

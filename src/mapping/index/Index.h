@@ -76,7 +76,7 @@ private:
      * @param k - minimizer's length
      * @return double strand minimizer for window
      */
-    static int getDoubleStrandMinimizer(string &window, int k);
+    static unsigned long long getDoubleStrandMinimizer(string &window, int k);
 
 
     static unsigned long long hash(string &sequence);
