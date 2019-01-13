@@ -69,7 +69,7 @@ int main() {
         for (int i = 0, n = reg_align.length(); i < n; i++) {
             char c = reg_align[i];
             if (c == '-') {
-                alignments[genome_pos].push_back(static_cast<char &&>(tolower(read_align[i])));
+                alignments[genome_pos].push_back(static_cast<char>(tolower(read_align[i])));
             } else {
                 alignments[genome_pos].push_back(read_align[i]);
                 genome_pos++;
@@ -79,7 +79,7 @@ int main() {
     }
 
     //collect mutations
-    int limit = 10;
+    int limit = 3;
     for (int i = 0, n = data_loader.genome.length(); i < n; i++) {
         vector<char> position_alignments = alignments[i];
         if (position_alignments.size() <=limit) {
@@ -90,13 +90,13 @@ int main() {
         int occurences = get<0>(res);
         char c = get<1>(res);
 
-        if(occurences<position_alignments.size()/2){
+        if(occurences<=position_alignments.size()/2){
             continue;
         }
 
         if (islower(c)) {
             //insertion
-            mutations.push_back(Mutation(MutationType::Insertion, i, c));
+            mutations.push_back(Mutation(MutationType::Insertion, i, static_cast<char>(toupper(c))));
         } else if (c == '-') {
             //deletion
             mutations.push_back(Mutation(MutationType::Deletion, i, c));
