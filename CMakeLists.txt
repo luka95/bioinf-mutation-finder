@@ -3,13 +3,14 @@ project(bioinf_mutation_finder)
 
 set(CMAKE_CXX_STANDARD 14)
 
+
 include_directories(src)
 include_directories(src/alignment)
 include_directories(src/mapping/index)
 include_directories(src/mapping/inverter)
 include_directories(src/mapping/lis)
 
-add_executable(bioinf_mutation_finder   src/mapping/mapping_demo.cpp
+add_executable(bioinf_mutation_finder   src/main.cpp
         src/alignment/Align.cpp
         src/alignment/Align.h
         src/alignment/Hirschberg.cpp

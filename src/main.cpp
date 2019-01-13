@@ -22,10 +22,9 @@ const string mutated_path = "../data/lambda_simulated_reads.fasta";
 const string results_path = "../data/results.csv";
 
 
-char findMostFrequentValue(vector<char> &values);
+tuple<int, char> findMostFrequentValue(vector<char> &values);
 
 int main() {
-
     DataLoader data_loader(genome_path, mutated_path);
     data_loader.loadData();
 
@@ -80,18 +79,21 @@ int main() {
     }
 
     //collect mutations
+    int limit = 10;
     for (int i = 0, n = data_loader.genome.length(); i < n; i++) {
         vector<char> position_alignments = alignments[i];
-        if (position_alignments.size() <=10) {
+        if (position_alignments.size() <=limit) {
             continue;
         }
 
-        char c = findMostFrequentValue(position_alignments);
-        if (c == '\0') {
+        tuple<int, char> res = findMostFrequentValue(position_alignments);
+        int occurences = get<0>(res);
+        char c = get<1>(res);
+
+        if(occurences<position_alignments.size()/2){
             continue;
         }
 
-        char actual = data_loader.genome[i];
         if (islower(c)) {
             //insertion
             mutations.push_back(Mutation(MutationType::Insertion, i, c));
@@ -114,8 +116,8 @@ int main() {
     return 0;
 }
 
-char findMostFrequentValue(vector<char> &values) {
-    if (values.empty()) return '\0';
+tuple<int, char> findMostFrequentValue(vector<char> &values) {
+    if (values.empty()) return {0,'\0'};
 
     int max = 1;
     char mf_value = values[0];
@@ -134,6 +136,6 @@ char findMostFrequentValue(vector<char> &values) {
         }
     }
 
-    return mf_value;
+    return {max, mf_value};
 }
 
