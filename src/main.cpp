@@ -36,7 +36,6 @@ int main() {
 
     int processed = 1;
     int total = data_loader.mutated_genome_reads.size();
-    int mapped = 0;
 
     //TODO Open MP for parallelization here
     for (string &read : data_loader.mutated_genome_reads) {
@@ -50,7 +49,6 @@ int main() {
         int strand_xor = get<1>(mapping);
         if (strand_xor == -1) continue;
 
-        mapped++;
         tuple<int, int, int, int> positions = get<0>(mapping);
         int genome_start = get<0>(positions);
         int genome_end = get<1>(positions);
@@ -72,28 +70,14 @@ int main() {
         for (int i = 0, n = reg_align.length(); i < n; i++) {
             char c = reg_align[i];
             if (c == '-') {
-                //insertion - mark = lower case base
-                //mutations.push_back(Mutation(MutationType::Insertion, genome_pos, read_align[i]));
                 alignments[genome_pos].push_back(static_cast<char &&>(tolower(read_align[i])));
             } else {
-                // '-' in read_align is for deletion, a letter is for supstitution or match
-//                if(read_align[i] == '-'){
-//                    //deletion
-//                    mutations.push_back(Mutation(MutationType::Deletion, genome_pos,'-'));
-//                }else{
-//                    if(read_align[i]!=c) {
-//                        //supstitution
-//                        mutations.push_back(Mutation(MutationType::Substitution, genome_pos, read_align[i]));
-//                    }
-//                }
                 alignments[genome_pos].push_back(read_align[i]);
                 genome_pos++;
 
             }
         }
     }
-
-    //cout<< "Mapped "<<mapped<<" of "<<total<<endl;
 
     //collect mutations
     for (int i = 0, n = data_loader.genome.length(); i < n; i++) {
@@ -111,18 +95,14 @@ int main() {
         if (islower(c)) {
             //insertion
             mutations.push_back(Mutation(MutationType::Insertion, i, c));
-            continue;
         } else if (c == '-') {
             //deletion
             mutations.push_back(Mutation(MutationType::Deletion, i, c));
-            continue;
         } else if (c != data_loader.genome[i]) {
             //supstitution
             mutations.push_back(Mutation(MutationType::Substitution, i, c));
-            continue;
         }
     }
-
 
     //output mutations
     ofstream file;
