@@ -50,7 +50,7 @@ int main() {
             mapped_read = Inverter::inverse(mapped_read);
         }
 
-        result res  = getHirschbergAlignmentMutations(mapped_genome, mapped_read, genome_start);
+        zw alignment = Hirschberg(mapped_genome, mapped_read);
     }
 
     return 0;
