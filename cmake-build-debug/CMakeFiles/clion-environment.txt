@@ -1,4 +1,4 @@
-ToolSet: 5.0@D:\Users\Sime\Develop\MinGW
+ToolSet: 5.0 (local)@D:\Users\Sime\Develop\MinGW
 Options: 
 
 Options:
