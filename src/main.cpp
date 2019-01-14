@@ -33,47 +33,58 @@ int main() {
     map<int, vector<char>> alignments;
     vector<Mutation> mutations;
 
-    int processed = 1;
     int total = data_loader.mutated_genome_reads.size();
-
+    int processed = 0;
     //TODO Open MP for parallelization here
-    for (string &read : data_loader.mutated_genome_reads) {
+    int j;
 
-        cout << "Processing read " << processed << " of " << total << endl;
-        processed++;
+    #pragma omp parallel
+    {
+        #pragma omp for
+        for (j = 0; j < total; j++) {
 
-        read_index = Index::index(read, w, k);
-        tuple<tuple<int, int, int, int>, int> mapping = Index::getBestMatch(genome_index, read_index);
+            string read = data_loader.mutated_genome_reads[j];
+            //cout << "Processing read " <<j+1<< " of " << total << endl;
 
-        int strand_xor = get<1>(mapping);
-        if (strand_xor == -1) continue;
+            read_index = Index::index(read, w, k);
+            tuple<tuple<int, int, int, int>, int> mapping = Index::getBestMatch(genome_index, read_index);
 
-        tuple<int, int, int, int> positions = get<0>(mapping);
-        int genome_start = get<0>(positions);
-        int genome_end = get<1>(positions);
-        int read_start = get<2>(positions);
-        int read_end = get<3>(positions);
+            int strand_xor = get<1>(mapping);
+            if (strand_xor == -1) continue;
 
-        string mapped_read = read.substr(read_start, read_end - read_start + 1);
-        string mapped_genome = data_loader.genome.substr(genome_start, genome_end - genome_start + 1);
+            tuple<int, int, int, int> positions = get<0>(mapping);
+            int genome_start = get<0>(positions);
+            int genome_end = get<1>(positions);
+            int read_start = get<2>(positions);
+            int read_end = get<3>(positions);
 
-        if (strand_xor == 1) {
-            mapped_read = Inverter::inverse(mapped_read);
-        }
+            string mapped_read = read.substr(read_start, read_end - read_start + 1);
+            string mapped_genome = data_loader.genome.substr(genome_start, genome_end - genome_start + 1);
 
-        zw alignment = Hirschberg(mapped_genome, mapped_read);
-        string reg_align = alignment.z;
-        string read_align = alignment.w;
+            if (strand_xor == 1) {
+                mapped_read = Inverter::inverse(mapped_read);
+            }
 
-        int genome_pos = genome_start;
-        for (int i = 0, n = reg_align.length(); i < n; i++) {
-            char c = reg_align[i];
-            if (c == '-') {
-                alignments[genome_pos].push_back(static_cast<char>(tolower(read_align[i])));
-            } else {
-                alignments[genome_pos].push_back(read_align[i]);
-                genome_pos++;
+            zw alignment = Hirschberg(mapped_genome, mapped_read);
+            string reg_align = alignment.z;
+            string read_align = alignment.w;
 
+            #pragma omp critical
+            {
+                int genome_pos = genome_start;
+                for (int i = 0, n = reg_align.length(); i < n; i++) {
+                    char c = reg_align[i];
+
+                    if (c == '-') {
+                        alignments[genome_pos].push_back(static_cast<char>(tolower(read_align[i])));
+                    } else {
+                        alignments[genome_pos].push_back(read_align[i]);
+                        genome_pos++;
+                    }
+                };
+
+                processed++;
+                cout << "Proccesed " << processed << " of " << total << endl;
             }
         }
     }
@@ -82,7 +93,7 @@ int main() {
     int limit = 3;
     for (int i = 0, n = data_loader.genome.length(); i < n; i++) {
         vector<char> position_alignments = alignments[i];
-        if (position_alignments.size() <=limit) {
+        if (position_alignments.size() <= limit) {
             continue;
         }
 
@@ -90,7 +101,7 @@ int main() {
         int occurences = get<0>(res);
         char c = get<1>(res);
 
-        if(occurences<=position_alignments.size()/2){
+        if (occurences <= position_alignments.size() / 2) {
             continue;
         }
 
@@ -117,7 +128,7 @@ int main() {
 }
 
 tuple<int, char> findMostFrequentValue(vector<char> &values) {
-    if (values.empty()) return {0,'\0'};
+    if (values.empty()) return {0, '\0'};
 
     int max = 1;
     char mf_value = values[0];
