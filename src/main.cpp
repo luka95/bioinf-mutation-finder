@@ -17,9 +17,9 @@ using namespace std;
 const int w = 5;
 const int k = 15;
 
-const string genome_path = "../data/lambda.fasta";
-const string mutated_path = "../data/lambda_simulated_reads.fasta";
-const string results_path = "../data/results.csv";
+const string genome_path = "../data/ecoli.fasta";
+const string mutated_path = "../data/ecoli_simulated_reads.fasta";
+const string results_path = "../data/results_ecoli.csv";
 
 
 tuple<int, char> findMostFrequentValue(vector<char> &values);
@@ -45,6 +45,11 @@ int main() {
 
             string read = data_loader.mutated_genome_reads[j];
             //cout << "Processing read " <<j+1<< " of " << total << endl;
+            #pragma omp critical
+            {
+                processed++;
+                cout << "Proccesing " << processed << " of " << total << endl;
+            };
 
             read_index = Index::index(read, w, k);
             tuple<tuple<int, int, int, int>, int> mapping = Index::getBestMatch(genome_index, read_index);
@@ -82,9 +87,6 @@ int main() {
                         genome_pos++;
                     }
                 };
-
-                processed++;
-                cout << "Proccesed " << processed << " of " << total << endl;
             }
         }
     }
