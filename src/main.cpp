@@ -35,60 +35,49 @@ int main() {
 
     int total = data_loader.mutated_genome_reads.size();
     int processed = 0;
-    //TODO Open MP for parallelization here
     int j;
 
-    #pragma omp parallel
-    {
-        #pragma omp for
-        for (j = 0; j < total; j++) {
+    for (j = 0; j < total; j++) {
 
-            string read = data_loader.mutated_genome_reads[j];
-            //cout << "Processing read " <<j+1<< " of " << total << endl;
-            #pragma omp critical
-            {
-                processed++;
-                cout << "Proccesing " << processed << " of " << total << endl;
-            };
+        string read = data_loader.mutated_genome_reads[j];
+        //cout << "Processing read " <<j+1<< " of " << total << endl;
+        processed++;
+        cout << "Proccesing " << processed << " of " << total << endl;
 
-            read_index = Index::index(read, w, k);
-            tuple<tuple<int, int, int, int>, int> mapping = Index::getBestMatch(genome_index, read_index);
+        read_index = Index::index(read, w, k);
+        tuple<tuple<int, int, int, int>, int> mapping = Index::getBestMatch(genome_index, read_index);
 
-            int strand_xor = get<1>(mapping);
-            if (strand_xor == -1) continue;
+        int strand_xor = get<1>(mapping);
+        if (strand_xor == -1) continue;
 
-            tuple<int, int, int, int> positions = get<0>(mapping);
-            int genome_start = get<0>(positions);
-            int genome_end = get<1>(positions);
-            int read_start = get<2>(positions);
-            int read_end = get<3>(positions);
+        tuple<int, int, int, int> positions = get<0>(mapping);
+        int genome_start = get<0>(positions);
+        int genome_end = get<1>(positions);
+        int read_start = get<2>(positions);
+        int read_end = get<3>(positions);
 
-            string mapped_read = read.substr(read_start, read_end - read_start + 1);
-            string mapped_genome = data_loader.genome.substr(genome_start, genome_end - genome_start + 1);
+        string mapped_read = read.substr(read_start, read_end - read_start + 1);
+        string mapped_genome = data_loader.genome.substr(genome_start, genome_end - genome_start + 1);
 
-            if (strand_xor == 1) {
-                mapped_read = Inverter::inverse(mapped_read);
-            }
-
-            zw alignment = Hirschberg(mapped_genome, mapped_read);
-            string reg_align = alignment.z;
-            string read_align = alignment.w;
-
-            #pragma omp critical
-            {
-                int genome_pos = genome_start;
-                for (int i = 0, n = reg_align.length(); i < n; i++) {
-                    char c = reg_align[i];
-
-                    if (c == '-') {
-                        alignments[genome_pos].push_back(static_cast<char>(tolower(read_align[i])));
-                    } else {
-                        alignments[genome_pos].push_back(read_align[i]);
-                        genome_pos++;
-                    }
-                };
-            }
+        if (strand_xor == 1) {
+            mapped_read = Inverter::inverse(mapped_read);
         }
+
+        zw alignment = Hirschberg(mapped_genome, mapped_read);
+        string reg_align = alignment.z;
+        string read_align = alignment.w;
+
+        int genome_pos = genome_start;
+        for (int i = 0, n = reg_align.length(); i < n; i++) {
+            char c = reg_align[i];
+
+            if (c == '-') {
+                alignments[genome_pos].push_back(static_cast<char>(tolower(read_align[i])));
+            } else {
+                alignments[genome_pos].push_back(read_align[i]);
+                genome_pos++;
+            }
+        };
     }
 
     //collect mutations
