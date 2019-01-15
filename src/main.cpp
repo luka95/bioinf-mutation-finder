@@ -14,6 +14,9 @@
 
 using namespace std;
 
+const char bases[] = {'A', 'C', 'G', 'T', '-'};
+const int BASE_COUNT = 4;
+
 const int w = 5;
 const int k = 15;
 
@@ -24,23 +27,71 @@ const int COLLECTION_LIMIT = 4;
 const int INSERTION_COLLECTION_LIMIT = 8;
 const int MAX_READ_LENGTH = 10000;
 
-tuple<short, char> getMax(map<char, short> &map);
+class BaseCounter {
+private:
+    short cnt[5] = {0, 0, 0, 0, 0};
+public:
+    void increaseCount(char base) {
+        switch (base) {
+            case 'A':
+                cnt[0] += 1;
+                break;
+            case 'C':
+                cnt[1] += 1;
+                break;
+            case 'G':
+                cnt[2] += 1;
+                break;
+            case 'T':
+                cnt[3] += 1;
+                break;
+            case '-':
+                cnt[4] += 1;
+                break;
+            default:
+                break;
+        }
+    }
+
+    int getTotalHits() {
+        int total_hits = 0;
+        for (short s : cnt) {
+            total_hits += s;
+        }
+        return total_hits;
+    }
+
+    tuple<short, char> getMax() {
+        short max = 0;
+        int idx;
+
+        for (int i = 0; i < (BASE_COUNT + 1); i++) {
+            short s = cnt[i];
+            if (s > max) {
+                max = s;
+                idx = i;
+            }
+        }
+        return {max, bases[idx]};
+    }
+};
 
 
 int main() {
     DataLoader data_loader(genome_path, mutated_path);
     data_loader.loadData();
 
-    unordered_map<string, set<tuple<int, int>>> genome_index = Index::index(data_loader.genome, w, k);
-
-    // a counter for A,C,G,T,- for each position in the genome
-    vector<map<char, short>> alignments;
-    vector<map<char, short>> insertions;
+    vector<BaseCounter> alignments;
+    vector<BaseCounter> insertions;
     for (int i = 0, n = data_loader.genome.size(); i < n; i++) {
-        alignments.push_back(map<char, short>());
-        insertions.push_back(map<char, short>());
+        alignments.push_back(BaseCounter());
+        insertions.push_back(BaseCounter());
     }
+
     vector<Mutation> mutations;
+
+    cout<<"Building genome index"<<endl;
+    unordered_map<string, set<tuple<int, int>>> genome_index = Index::index(data_loader.genome, w, k);
 
     int total = data_loader.mutated_genome_reads.size();
     int processed = 0;
@@ -55,7 +106,7 @@ int main() {
         {
             processed++;
             cout << "Proccesing " << processed << " of " << total << endl;
-            cout <<"Genome index size : "<<genome_index.size()<<endl;
+            cout<<"Genome index size : "<<data_loader.genome.size()<<endl;
         };
 
         if (read.length() > MAX_READ_LENGTH) continue;
@@ -95,10 +146,10 @@ int main() {
                         //taking only one symbol insertions
                         continue;
                     }
-                    insertions[genome_pos][read_align[i]]++;
+                    insertions[genome_pos].increaseCount(read_align[i]);
                     last_insertion = genome_pos;
                 } else {
-                    alignments[genome_pos][read_align[i]]++;
+                    alignments[genome_pos].increaseCount(read_align[i]);
                     genome_pos++;
                 }
             }
@@ -107,17 +158,13 @@ int main() {
 
     //collect mutations - deletions and supstitutions
     for (int i = 0, n = data_loader.genome.length(); i < n; i++) {
-        map<char, short> position_alignments = alignments[i];
-        int total_hits = 0;
-        for (auto &tup : position_alignments) {
-            total_hits += tup.second;
-        }
-
+        BaseCounter position_alignments = alignments[i];
+        int total_hits = position_alignments.getTotalHits();
         if (total_hits < COLLECTION_LIMIT) {
             continue;
         }
 
-        tuple<short, char> res = getMax(position_alignments);
+        tuple<short, char> res = position_alignments.getMax();
         short occurences = get<0>(res);
         char c = get<1>(res);
 
@@ -136,18 +183,14 @@ int main() {
 
     //collect insertions
     for (int i = 0, n = data_loader.genome.length(); i < n; i++) {
-        map<char, short> position_insertions = insertions[i];
+        BaseCounter position_insertions = insertions[i];
 
-        int total_hits = 0;
-        for(auto &tup : position_insertions){
-            total_hits+=tup.second;
-        }
-
+        int total_hits = position_insertions.getTotalHits();
         if (total_hits < INSERTION_COLLECTION_LIMIT) {
             continue;
         }
 
-        tuple<short, char> res = getMax(position_insertions);
+        tuple<short, char> res = position_insertions.getMax();
         short occurences = get<0>(res);
         char c = get<1>(res);
 
@@ -167,18 +210,4 @@ int main() {
     }
 
     return 0;
-}
-
-tuple<short, char> getMax(map<char, short> &mp) {
-    short max = 0;
-    char c;
-
-    for (auto &tup : mp) {
-        if (tup.second > max) {
-            max = tup.second;
-            c = tup.first;
-        }
-    }
-
-    return {max, c};
 }
