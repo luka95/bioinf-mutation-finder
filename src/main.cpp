@@ -21,43 +21,45 @@ const string genome_path = "../data/lambda.fasta";
 const string mutated_path = "../data/lambda_simulated_reads.fasta";
 const string results_path = "../data/results_lam.csv";
 const int COLLECTION_LIMIT = 4;
+const int INSERTION_COLLECTION_LIMIT = 8;
 const int MAX_READ_LENGTH = 10000;
 
 tuple<short, char> getMax(map<char, short> &map);
 
-map<char, short> getBaseCounter();
 
 int main() {
     DataLoader data_loader(genome_path, mutated_path);
     data_loader.loadData();
 
     unordered_map<string, set<tuple<int, int>>> genome_index = Index::index(data_loader.genome, w, k);
-    unordered_map<string, set<tuple<int, int>>> read_index;
 
     // a counter for A,C,G,T,- for each position in the genome
     vector<map<char, short>> alignments;
     vector<map<char, short>> insertions;
-
     for (int i = 0, n = data_loader.genome.size(); i < n; i++) {
         alignments.push_back(map<char, short>());
         insertions.push_back(map<char, short>());
     }
-
     vector<Mutation> mutations;
 
     int total = data_loader.mutated_genome_reads.size();
     int processed = 0;
 
-    for (int j = 0; j < total; j++) {
+    int j;
+    #pragma omp parallel for
+    for (j = 0; j < total; j++) {
 
         string read = data_loader.mutated_genome_reads[j];
 
-        processed++;
-        cout << "Proccesing " << processed << " of " << total << endl;
+        #pragma omp critical(processed)
+        {
+            processed++;
+            cout << "Proccesing " << processed << " of " << total << endl;
+        };
 
         if (read.length() > MAX_READ_LENGTH) continue;
 
-        read_index = Index::index(read, w, k);
+        unordered_map<string, set<tuple<int, int>>> read_index = Index::index(read, w, k);
         tuple<tuple<int, int, int, int>, int> mapping = Index::getBestMatch(genome_index, read_index);
 
         int strand_xor = get<1>(mapping);
@@ -80,23 +82,26 @@ int main() {
         string reg_align = get<0>(alignment);
         string read_align = get<1>(alignment);
 
-        int genome_pos = genome_start;
-        int last_insertion = -1;
-        for (int i = 0, n = reg_align.length(); i < n; i++) {
-            char c = reg_align[i];
+        #pragma omp critical(update)
+        {
+            int genome_pos = genome_start;
+            int last_insertion = -1;
+            for (int i = 0, n = reg_align.length(); i < n; i++) {
+                char c = reg_align[i];
 
-            if (c == '-') {
-                if (last_insertion == genome_pos) {
-                    //taking only one symbol insertions
-                    continue;
+                if (c == '-') {
+                    if (last_insertion == genome_pos) {
+                        //taking only one symbol insertions
+                        continue;
+                    }
+                    insertions[genome_pos][read_align[i]]++;
+                    last_insertion = genome_pos;
+                } else {
+                    alignments[genome_pos][read_align[i]]++;
+                    genome_pos++;
                 }
-                insertions[genome_pos][read_align[i]]++;
-                last_insertion = genome_pos;
-            } else {
-                alignments[genome_pos][read_align[i]]++;
-                genome_pos++;
             }
-        }
+        };
     }
 
     //collect mutations - deletions and supstitutions
@@ -137,7 +142,7 @@ int main() {
             total_hits+=tup.second;
         }
 
-        if (total_hits < 2*COLLECTION_LIMIT) {
+        if (total_hits < INSERTION_COLLECTION_LIMIT) {
             continue;
         }
 
