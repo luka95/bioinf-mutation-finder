@@ -17,12 +17,15 @@ using namespace std;
 const int w = 5;
 const int k = 15;
 
-const string genome_path = "../data/ecoli.fasta";
-const string mutated_path = "../data/ecoli_simulated_reads.fasta";
-const string results_path = "../data/results_ecoli.csv";
+const string genome_path = "../data/lambda.fasta";
+const string mutated_path = "../data/lambda_simulated_reads.fasta";
+const string results_path = "../data/results_lam.csv";
+const int COLLECTION_LIMIT = 4;
+const int MAX_READ_LENGTH = 10000;
 
+tuple<short, char> getMax(map<char, short> &map);
 
-tuple<int, char> findMostFrequentValue(vector<char> &values);
+map<char, short> getBaseCounter();
 
 int main() {
     DataLoader data_loader(genome_path, mutated_path);
@@ -30,19 +33,29 @@ int main() {
 
     unordered_map<string, set<tuple<int, int>>> genome_index = Index::index(data_loader.genome, w, k);
     unordered_map<string, set<tuple<int, int>>> read_index;
-    map<int, vector<char>> alignments;
+
+    // a counter for A,C,G,T,- for each position in the genome
+    vector<map<char, short>> alignments;
+    vector<map<char, short>> insertions;
+
+    for (int i = 0, n = data_loader.genome.size(); i < n; i++) {
+        alignments.push_back(map<char, short>());
+        insertions.push_back(map<char, short>());
+    }
+
     vector<Mutation> mutations;
 
     int total = data_loader.mutated_genome_reads.size();
     int processed = 0;
-    int j;
 
-    for (j = 0; j < total; j++) {
+    for (int j = 0; j < total; j++) {
 
         string read = data_loader.mutated_genome_reads[j];
-        //cout << "Processing read " <<j+1<< " of " << total << endl;
+
         processed++;
         cout << "Proccesing " << processed << " of " << total << endl;
+
+        if (read.length() > MAX_READ_LENGTH) continue;
 
         read_index = Index::index(read, w, k);
         tuple<tuple<int, int, int, int>, int> mapping = Index::getBestMatch(genome_index, read_index);
@@ -63,43 +76,50 @@ int main() {
             mapped_read = Inverter::inverse(mapped_read);
         }
 
-        zw alignment = Hirschberg(mapped_genome, mapped_read);
-        string reg_align = alignment.z;
-        string read_align = alignment.w;
+        tuple<string, string> alignment = Hirschberg(mapped_genome, mapped_read);
+        string reg_align = get<0>(alignment);
+        string read_align = get<1>(alignment);
 
         int genome_pos = genome_start;
+        int last_insertion = -1;
         for (int i = 0, n = reg_align.length(); i < n; i++) {
             char c = reg_align[i];
 
             if (c == '-') {
-                alignments[genome_pos].push_back(static_cast<char>(tolower(read_align[i])));
+                if (last_insertion == genome_pos) {
+                    //taking only one symbol insertions
+                    continue;
+                }
+                insertions[genome_pos][read_align[i]]++;
+                last_insertion = genome_pos;
             } else {
-                alignments[genome_pos].push_back(read_align[i]);
+                alignments[genome_pos][read_align[i]]++;
                 genome_pos++;
             }
-        };
+        }
     }
 
-    //collect mutations
-    int limit = 3;
+    //collect mutations - deletions and supstitutions
     for (int i = 0, n = data_loader.genome.length(); i < n; i++) {
-        vector<char> position_alignments = alignments[i];
-        if (position_alignments.size() <= limit) {
+        map<char, short> position_alignments = alignments[i];
+        int total_hits = 0;
+        for (auto &tup : position_alignments) {
+            total_hits += tup.second;
+        }
+
+        if (total_hits < COLLECTION_LIMIT) {
             continue;
         }
 
-        tuple<int, char> res = findMostFrequentValue(position_alignments);
-        int occurences = get<0>(res);
+        tuple<short, char> res = getMax(position_alignments);
+        short occurences = get<0>(res);
         char c = get<1>(res);
 
-        if (occurences <= position_alignments.size() / 2) {
+        if (occurences <= total_hits / 2) {
             continue;
         }
 
-        if (islower(c)) {
-            //insertion
-            mutations.push_back(Mutation(MutationType::Insertion, i, static_cast<char>(toupper(c))));
-        } else if (c == '-') {
+        if (c == '-') {
             //deletion
             mutations.push_back(Mutation(MutationType::Deletion, i, c));
         } else if (c != data_loader.genome[i]) {
@@ -108,9 +128,34 @@ int main() {
         }
     }
 
+    //collect insertions
+    for (int i = 0, n = data_loader.genome.length(); i < n; i++) {
+        map<char, short> position_insertions = insertions[i];
+
+        int total_hits = 0;
+        for(auto &tup : position_insertions){
+            total_hits+=tup.second;
+        }
+
+        if (total_hits < 2*COLLECTION_LIMIT) {
+            continue;
+        }
+
+        tuple<short, char> res = getMax(position_insertions);
+        short occurences = get<0>(res);
+        char c = get<1>(res);
+
+        if (occurences <= total_hits / 2) {
+            continue;
+
+        }
+        mutations.push_back(Mutation(MutationType::Insertion, i, c));
+    }
+
     //output mutations
     ofstream file;
     file.open(results_path);
+    sort(mutations.begin(), mutations.end());
     for (auto &mutation : mutations) {
         file << mutation;
     }
@@ -118,26 +163,16 @@ int main() {
     return 0;
 }
 
-tuple<int, char> findMostFrequentValue(vector<char> &values) {
-    if (values.empty()) return {0, '\0'};
+tuple<short, char> getMax(map<char, short> &mp) {
+    short max = 0;
+    char c;
 
-    int max = 1;
-    char mf_value = values[0];
-    int cnt = 1;
-
-    sort(values.begin(), values.end());
-    for (int i = 1, n = values.size(); i < n; i++) {
-        if (values[i - 1] == values[i]) {
-            cnt++;
-        } else {
-            if (cnt > max) {
-                max = cnt;
-                mf_value = values[i - 1];
-                cnt = 1;
-            }
+    for (auto &tup : mp) {
+        if (tup.second > max) {
+            max = tup.second;
+            c = tup.first;
         }
     }
 
-    return {max, mf_value};
+    return {max, c};
 }
-
