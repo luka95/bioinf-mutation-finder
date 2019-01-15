@@ -11,7 +11,19 @@ using namespace std;
 class LIS {
 public:
 
+    /**
+     * Finds the longest increasing subsequence in positions
+     * @param positions
+     * @return longest increasing subsequence
+     */
     static vector<int> find(vector<int> positions);
+
+    /**
+     * Finds the longest increasing subsequnce of second elements in vector
+     * @param vec
+     * @param strand_xor
+     * @return
+     */
     static vector<tuple<int,int>> findBySecond(vector<tuple<int,int>> vec, int strand_xor);
 };
 

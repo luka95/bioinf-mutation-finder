@@ -11,8 +11,18 @@ using namespace std;
 
 class Inverter {
 public:
+    /**
+     * Returns the inverse complement of original string.
+     * @param original - string to reverse
+     * @return inverse complement
+     */
     static string inverse(string original);
 private:
+    /**
+     * A->T, G->C
+     * @param c
+     * @return
+     */
     static char complement(char c);
 };
 

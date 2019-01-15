@@ -11,6 +11,9 @@
 
 using namespace std;
 
+/**
+ * Used for loading genome data.
+ */
 class DataLoader {
 
 public:
