@@ -106,7 +106,6 @@ int main() {
         {
             processed++;
             cout << "Proccesing " << processed << " of " << total << endl;
-            //cout<<"Genome index size : "<<data_loader.genome.size()<<endl;
         };
 
         if (read.length() > MAX_READ_LENGTH) continue;
