@@ -17,9 +17,9 @@ using namespace std;
 const int w = 5;
 const int k = 15;
 
-const string genome_path = "../data/lambda.fasta";
-const string mutated_path = "../data/lambda_simulated_reads.fasta";
-const string results_path = "../data/results_lam.csv";
+const string genome_path = "../data/ecoli.fasta";
+const string mutated_path = "../data/ecoli_simulated_reads.fasta";
+const string results_path = "../data/results_ecoli.csv";
 const int COLLECTION_LIMIT = 4;
 const int INSERTION_COLLECTION_LIMIT = 8;
 const int MAX_READ_LENGTH = 10000;
@@ -55,6 +55,7 @@ int main() {
         {
             processed++;
             cout << "Proccesing " << processed << " of " << total << endl;
+            cout <<"Genome index size : "<<genome_index.size()<<endl;
         };
 
         if (read.length() > MAX_READ_LENGTH) continue;

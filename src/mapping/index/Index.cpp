@@ -166,8 +166,11 @@ Index::getBestMatch(unordered_map<string, set<tuple<int,int>>> &reference_index,
     for (const auto &it : sequence_index) {
         string kmer = it.first;
         //offset, strand
-        set<tuple<int,int>> positions = reference_index[kmer];
         set<tuple<int,int>> sequence_positions = it.second;
+        if(reference_index.find(kmer) == reference_index.end()){
+            continue;
+        }
+        set<tuple<int,int>> positions = reference_index[kmer];
 
         for (const auto &seq_pos : sequence_positions) {
             for (const auto &pos : positions) {
